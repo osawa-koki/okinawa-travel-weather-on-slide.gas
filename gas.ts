@@ -1,32 +1,54 @@
-function insertOrUpdateTextBox() {
-  // プロパティストアからプレゼンテーションID、スライドID、およびオブジェクトIDを取得
-  var properties = PropertiesService.getScriptProperties();
-  var presentationId = properties.getProperty('PRESENTATION_ID');
-  var slideId = properties.getProperty('SLIDE_ID');
-  var objectId = properties.getProperty('OBJECT_ID'); // オブジェクトID
+// @ts-nocheck
 
-  if (!presentationId || !slideId) {
-    Logger.log('Presentation ID or Slide ID is not set.');
-    return;
+function insertOrUpdateTextBox() {
+  const properties = PropertiesService.getScriptProperties()
+
+  const presentationId = properties.getProperty('PRESENTATION_ID')
+  const slideDateMapper = JSON.parse(properties.getProperty('SLIDE_DATE_MAPPER'))
+
+  if (presentationId == null) {
+    Logger.log('Presentation ID is not set.')
+    return
   }
 
-  // プレゼンテーションオブジェクトを取得
-  var presentation = SlidesApp.openById(presentationId);
-  var slide = presentation.getSlides().find(slide => slide.getObjectId() === slideId);
+  const presentation = SlidesApp.openById(presentationId)
 
-  // オブジェクトIDがプロパティにあり、スライド内にも存在する場合、更新
-  var shape = objectId ? slide.getShapes().find(shape => shape.getObjectId() === objectId) : null;
+  for (const [i, { slideId, date }] of Object.entries(slideDateMapper)) {
+    const objectIdKey = `OBJECT_ID_${i}`
+    const objectId = properties.getProperty(objectIdKey)
 
-  if (shape) {
-    // 既存のオブジェクトを更新
-    shape.getText().setText('Updated text in Google Slides!');
-    Logger.log('Text box with ID: ' + objectId + ' has been updated.');
-  } else {
-    // 新規にテキストボックスを作成し、プロパティに保存
-    shape = slide.insertShape(SlidesApp.ShapeType.TEXT_BOX, 100, 100, 300, 100);
-    shape.getText().setText('New text in Google Slides!');
-    var newObjectId = shape.getObjectId();
-    properties.setProperty('OBJECT_ID', newObjectId); // プロパティにオブジェクトIDを保存
-    Logger.log('New text box created with ID: ' + newObjectId);
+    if (slideId == null || date == null) {
+      Logger.log('Slide ID or date is not set.')
+      return
+    }
+
+    Logger.log('Slide ID: ' + slideId + ', Date: ' + date)
+
+    const slide = presentation.getSlides().find(slide => slide.getObjectId() === slideId)
+
+    if (slide == null) {
+      Logger.log('Slide with ID: ' + slideId + ' not found.')
+      return
+    }
+
+    let shape = objectId ? slide.getShapes().find(shape => shape.getObjectId() === objectId) : null
+
+    const text = '🌞'
+    const {x, y, width, height} = {x: 650, y: 50, width: 50, height: 50}
+
+    if (shape != null) {
+      shape.getText().setText(text)
+      shape.setLeft(x)
+      shape.setTop(y)
+      shape.setWidth(width)
+      shape.setHeight(height)
+      Logger.log('Text box with ID: ' + objectId + ' has been updated.')
+    } else {
+      shape = slide.insertShape(SlidesApp.ShapeType.TEXT_BOX, x, y, width, height)
+      shape.getText().setText(text)
+      const newObjectId = shape.getObjectId()
+      properties.setProperty(objectIdKey, newObjectId)
+      Logger.log('New text box created with ID: ' + newObjectId)
+    }
   }
 }

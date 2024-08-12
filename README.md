@@ -9,4 +9,4 @@
 | プロパティ名 | 説明 |
 | --- | --- |
 | `SLIDE_ID` | GoogleスライドのID |
-| `PRESENTATION_ID` | GoogleスライドのID |
+| `SLIDE_DATE_MAPPER` | `slide_date_mapper.json`の中身。 (`slide_date_mapper.json.example`をコピーして作成。) |
